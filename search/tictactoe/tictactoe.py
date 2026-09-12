@@ -42,8 +42,10 @@ def actions(board):
 
     possible_moves = set()
 
+    # need looop over x,y
     for i in range(len(board)):
         for j in range(len(board[i])):
+
             if board[i][j] == EMPTY:
                 possible_moves.add((i,j))
 
@@ -56,12 +58,13 @@ def result(board, action):
     """
     replica_board = copy.deepcopy(board)
 
+
     if player(replica_board) == X:
         symbol = X
     else:
         symbol = O
 
-
+    # EXXTRA, cases
     if (action[0] < 0 or action[0] > 2) or (action[1] < 0 or action[1] > 2):
         raise Exception('Not a valid action for the board')
 
@@ -96,14 +99,14 @@ def winner(board):
         return X
 
 
-
+    # same thing that X, but just change to 0
     # O win
     # Over [x][y] in line
     for i in range(3):
-        if all(board[i][j] == X for j in range(3)):
+        if all(board[i][j] == O for j in range(3)):
             return O
     for j in range(3):
-        if all(board[i][j] == X for i in range(3)):
+        if all(board[i][j] == O for i in range(3)):
             return O
 
     # In cross
@@ -119,6 +122,7 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
+
     if winner(board) is not None:
         return True
     if any(row.count(EMPTY) > 0 for row in board):
@@ -148,21 +152,46 @@ def minimax(board):
     if terminal(board):
         return None
 
+    current_player = player(board)
 
-    if player(board) == X:
+
+
+    if current_player == X:
         best_score = -math.inf
         best_action = None
 
+
         for action in actions(board):
+            score = minimax_value(result(board, action))
+
+            if score > best_score:
+                best_score = score
+                best_action = action
+
+        return best_action
+
+    else:
+        best_score = math.inf
+        best_action = None
+
+        for action in actions(board):
+            score = minimax_value(result(board, action))
+
+            if score < best_score:
+                best_score = score
+                best_action = action
 
         return best_action
 
 
+
+
 def minimax_value(board):
     # retunr the utility value of a board assuming both player play good
+    #   I needed, almsot same behavior that the other function.
 
     if terminal(board):
-        return utility
+        return utility(board)
 
     if player(board) == X:
         best_score = -math.inf
@@ -171,7 +200,13 @@ def minimax_value(board):
             score = minimax_value(result(board, action))
             best_score = max(best_score, score)
 
-            return best_score
+        return best_score
+
+
 
     else:
         best_score = math.inf
+        for action in actions(board):
+            score = minimax_value(result(board, action))
+            best_score = min(best_score, score)
+        return best_score
